@@ -75,7 +75,7 @@
 4. Каждая оценка связана с конкретным студентом, дисциплиной и преподавателем
 5. Дата экзамена обязательна для заполнения
 
-#Физическая модель
+# Физическая модель
 ```sql
 CREATE TABLE Students (
     student_id SERIAL PRIMARY KEY,
@@ -125,6 +125,7 @@ CREATE INDEX idx_grades_student_id ON Grades (student_id);
 CREATE INDEX idx_grades_subject_id ON Grades (subject_id);
 CREATE INDEX idx_grades_teacher_id ON Grades (teacher_id);
 ```
+
 
 
 
