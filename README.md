@@ -706,10 +706,3 @@ LIMIT 3;
 # Схемы
 ## Физическая модель
 ![Физическая схема из клиента для БД](https://github.com/Allas122/DataBase1/blob/main/scheme.png)
-
-
-
-
-
-
->>>>>>> 1cc74819f17fb68b32bfd79e838a216eadeb1e62
