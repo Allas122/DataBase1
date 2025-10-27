@@ -307,6 +307,48 @@ Grades:
 
 Вывод: Все таблицы соответствуют BCNF
 
+# Отчёты
+## 1. Средняя оценка каждого студента:
+```sql
+SELECT
+    s.full_name AS "Student Name",
+    sub.name AS "Subject",
+    AVG(g.grade) AS "Average Grade"
+FROM
+    Grades AS g
+JOIN
+    Students AS s ON g.student_id = s.student_id
+JOIN
+    Subjects AS sub ON g.subject_id = sub.subject_id
+GROUP BY
+    s.full_name,
+    sub.name
+ORDER BY
+    s.full_name,
+    "Average Grade" DESC;
+```
+## 2. Топ 3 ученика по успеваймости по предмету БД
+```sql
+SELECT
+    s.full_name AS "Student Name",
+    s.group_name,
+    AVG(g.grade) AS "Average Grade in Databases"
+FROM
+    Grades AS g
+JOIN
+    Students AS s ON g.student_id = s.student_id
+JOIN
+    Subjects AS sub ON g.subject_id = sub.subject_id
+WHERE
+    sub.name = 'Databases'
+GROUP BY
+    s.full_name,
+    s.group_name
+ORDER BY
+    "Average Grade in Databases" DESC
+LIMIT 3;
+```
+
 
 
 
