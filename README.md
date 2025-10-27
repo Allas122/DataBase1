@@ -709,70 +709,60 @@ LIMIT 3;
 ## ER-диаграмма
 ![ER диаграмма](https://github.com/Allas122/DataBase1/blob/main/ER.PNG)
 ## Диаграмма классов
-```plantuml
-!theme plain
+```mermaid
+classDiagram
+    class Student {
+        -studentId: Integer
+        -fullName: String
+        -recordBookNumber: String
+        -birthDate: Date
+        -groupName: String
+        +addGrade(grade: Grade)
+        +getAverageGrade() Double
+        +getGradesBySubject(subject: Subject) List~Grade~
+    }
 
-class Student {
-  - studentId: Integer
-  - fullName: String
-  - recordBookNumber: String
-  - birthDate: Date
-  - groupName: String
-  + addGrade(grade: Grade): void
-  + getAverageGrade(): Double
-  + getGradesBySubject(subject: Subject): List<Grade>
-}
+    class Subject {
+        -subjectId: Integer
+        -name: String
+        -totalHours: Integer
+        +getAllGrades() List~Grade~
+        +getTeachers() List~Teacher~
+    }
 
-class Subject {
-  - subjectId: Integer
-  - name: String
-  - totalHours: Integer
-  + getAllGrades(): List<Grade>
-  + getTeachers(): List<Teacher>
-}
+    class Teacher {
+        -teacherId: Integer
+        -fullName: String
+        -department: String
+        +addGrade(grade: Grade)
+        +getGradesGiven() List~Grade~
+        +getSubjectsTaught() List~Subject~
+    }
 
-class Teacher {
-  - teacherId: Integer
-  - fullName: String
-  - department: String
-  + addGrade(grade: Grade): void
-  + getGradesGiven(): List<Grade>
-  + getSubjectsTaught(): List<Subject>
-}
+    class Grade {
+        -gradeId: Integer
+        -student: Student
+        -subject: Subject
+        -teacher: Teacher
+        -examDate: Date
+        -gradeValue: Integer
+        +isExcellent() Boolean
+        +isPassing() Boolean
+    }
 
-class Grade {
-  - gradeId: Integer
-  - student: Student
-  - subject: Subject
-  - teacher: Teacher
-  - examDate: Date
-  - gradeValue: Integer
-  + isExcellent(): Boolean
-  + isPassing(): Boolean
-}
+    %% Relationships
+    Student "1" -- "*" Grade : receives
+    Subject "1" -- "*" Grade : has
+    Teacher "1" -- "*" Grade : gives
+    Teacher "1" -- "*" Subject : teaches
+    
+    %% Composition relationships
+    Grade *-- Student : belongs to
+    Grade *-- Subject : for subject
+    Grade *-- Teacher : evaluated by
 
-' Relationships
-Student "1" --> "*" Grade : receives
-Subject "1" --> "*" Grade : has
-Teacher "1" --> "*" Grade : gives
-Teacher "1" --> "*" Subject : teaches
-
-' Composition relationships
-Student *- Grade : contains
-Subject *- Grade : contains
-Teacher *- Grade : contains
-
-' Notes for constraints
-note top of Grade
-  gradeValue: 2-5
-  (2-неуд, 3-удовл, 4-хор, 5-отл)
-end note
-
-note right of Student
-  recordBookNumber: unique
-end note
-
-note right of Subject
-  name: unique
-end note
+    %% Constraints and validations
+    note for Grade "gradeValue: 2-5\n(2-неуд, 3-удовл, 4-хор, 5-отл)"
+    note for Student "recordBookNumber: unique"
+    note for Subject "name: unique"
 ```
