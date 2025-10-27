@@ -348,8 +348,9 @@ ORDER BY
     "Average Grade in Databases" DESC
 LIMIT 3;
 ```
-
-
+# Схемы
+## Физическая модель
+![Физическая схема из клиента для БД](https://github.com/Allas122/DataBase1/blob/main/scheme.png)
 
 
 
