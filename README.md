@@ -707,4 +707,4 @@ LIMIT 3;
 ## Физическая модель
 ![Физическая схема из клиента для БД](https://github.com/Allas122/DataBase1/blob/main/scheme.png)
 ## ER-диаграмма
-![ER диаграмма](https://github.com/Allas122/DataBase1/blob/main/ER.png)
+![ER диаграмма](https://github.com/Allas122/DataBase1/blob/main/ER.PNG)
