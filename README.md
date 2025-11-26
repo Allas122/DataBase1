@@ -485,3 +485,118 @@ ec7bb234c54c6dfa5ed1fa7fcb880e567bc5418cdae60c653e71a26aded561f7
 
 Открытое рабочее пространство в DataGrip
 ![Скриншот открытого рабочего пространства DataGrip](https://github.com/Allas122/DataBase1/blob/main/Debug/DataGrip2.PNG)
+
+## Схема Бд
+Ну, так как основная цель это всё-же развернуть БД и поотправлять запросики, то я просто возьму схему из предыдущей лабы. А о ней всё есть в этом же документе.
+Код миграции:
+```sql
+BEGIN;
+CREATE TABLE Students (
+    student_id SERIAL PRIMARY KEY,
+    full_name VARCHAR(255) NOT NULL,
+    record_book_number VARCHAR(20) UNIQUE NOT NULL,
+    birth_date DATE,
+    group_name VARCHAR(10)
+);
+
+CREATE TABLE Subjects (
+    subject_id SERIAL PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    total_hours INTEGER
+);
+
+CREATE TABLE Teachers (
+    teacher_id SERIAL PRIMARY KEY,
+    full_name VARCHAR(255) NOT NULL,
+    department VARCHAR(100)
+);
+
+CREATE TABLE Grades (
+    grade_id SERIAL PRIMARY KEY,
+    student_id INTEGER NOT NULL,
+    subject_id INTEGER NOT NULL,
+    teacher_id INTEGER NOT NULL,
+    exam_date DATE NOT NULL,
+    grade INTEGER NOT NULL CHECK (grade >= 2 AND grade <= 5),
+
+    CONSTRAINT fk_student
+        FOREIGN KEY(student_id)
+        REFERENCES Students(student_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_subject
+        FOREIGN KEY(subject_id)
+        REFERENCES Subjects(subject_id)
+        ON DELETE RESTRICT,
+
+    CONSTRAINT fk_teacher
+        FOREIGN KEY(teacher_id)
+        REFERENCES Teachers(teacher_id)
+        ON DELETE SET NULL
+);
+
+CREATE INDEX idx_grades_student_id ON Grades (student_id);
+CREATE INDEX idx_grades_subject_id ON Grades (subject_id);
+CREATE INDEX idx_grades_teacher_id ON Grades (teacher_id);
+END;
+```
+![Скриншот при накатывании миграции](https://github.com/Allas122/DataBase1/blob/main/Debug/DataGrip2.PNG)
+
+Вывод в консоле при накатывании:
+```ps
+[2025-11-26 18:38:10] Connected to Laba2
+[2025-11-26 18:38:10] completed in 55 ms
+Laba2> BEGIN
+[2025-11-26 18:39:01] completed in 8 ms
+Laba2> CREATE TABLE Students (
+           student_id SERIAL PRIMARY KEY,
+           full_name VARCHAR(255) NOT NULL,
+           record_book_number VARCHAR(20) UNIQUE NOT NULL,
+           birth_date DATE,
+           group_name VARCHAR(10)
+       )
+[2025-11-26 18:39:02] completed in 40 ms
+Laba2> CREATE TABLE Subjects (
+           subject_id SERIAL PRIMARY KEY,
+           name VARCHAR(255) UNIQUE NOT NULL,
+           total_hours INTEGER
+       )
+[2025-11-26 18:39:02] completed in 12 ms
+Laba2> CREATE TABLE Teachers (
+           teacher_id SERIAL PRIMARY KEY,
+           full_name VARCHAR(255) NOT NULL,
+           department VARCHAR(100)
+       )
+[2025-11-26 18:39:02] completed in 8 ms
+Laba2> CREATE TABLE Grades (
+           grade_id SERIAL PRIMARY KEY,
+           student_id INTEGER NOT NULL,
+           subject_id INTEGER NOT NULL,
+           teacher_id INTEGER NOT NULL,
+           exam_date DATE NOT NULL,
+           grade INTEGER NOT NULL CHECK (grade >= 2 AND grade <= 5),
+       
+           CONSTRAINT fk_student
+               FOREIGN KEY(student_id)
+               REFERENCES Students(student_id)
+               ON DELETE CASCADE,
+       
+           CONSTRAINT fk_subject
+               FOREIGN KEY(subject_id)
+               REFERENCES Subjects(subject_id)
+               ON DELETE RESTRICT,
+       
+           CONSTRAINT fk_teacher
+               FOREIGN KEY(teacher_id)
+               REFERENCES Teachers(teacher_id)
+               ON DELETE SET NULL
+       )
+[2025-11-26 18:39:02] completed in 14 ms
+Laba2> CREATE INDEX idx_grades_student_id ON Grades (student_id)
+[2025-11-26 18:39:02] completed in 7 ms
+Laba2> CREATE INDEX idx_grades_subject_id ON Grades (subject_id)
+[2025-11-26 18:39:02] completed in 7 ms
+Laba2> CREATE INDEX idx_grades_teacher_id ON Grades (teacher_id)
+[2025-11-26 18:39:02] completed in 10 ms
+Laba2> END
+[2025-11-26 18:39:02] completed in 4 ms```
