@@ -540,7 +540,7 @@ CREATE INDEX idx_grades_subject_id ON Grades (subject_id);
 CREATE INDEX idx_grades_teacher_id ON Grades (teacher_id);
 END;
 ```
-![Скриншот при накатывании миграции](https://github.com/Allas122/DataBase1/blob/main/Debug/DataGrip2.PNG)
+![Скриншот при накатывании миграции](https://github.com/Allas122/DataBase1/blob/main/Debug/DataGrip_Migration.png)
 
 Вывод в консоли при накатывании:
 ```ps
