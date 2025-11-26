@@ -647,4 +647,4 @@ INSERT INTO Grades (student_id, subject_id, teacher_id, exam_date, grade) VALUES
 (7, 3, 3, '2025-06-27', 4);
 END;
 ```
-![Процесс заполнения базы данных]((https://github.com/Allas122/DataBase1/blob/main/Debug/DataGrip_Data.png))
+![Скриншот заполнения БД](https://github.com/Allas122/DataBase1/blob/main/Debug/DataGrip_Data.png)
