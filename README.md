@@ -483,3 +483,8 @@ ec7bb234c54c6dfa5ed1fa7fcb880e567bc5418cdae60c653e71a26aded561f7
 ```
 ![Скриншот работающего контейнера](https://github.com/Allas122/DataBase1/blob/main/Debug/Docker_container_screen.png)
 
+Открываю проект в DataGrip и пробую подключится:
+![Скриншот подключения через DataGrip](https://github.com/Allas122/DataBase1/blob/main/Debug/DataGrip.png)
+
+Открытое рабочее пространство в DataGrip
+![Скриншот открытого рабочего пространства DataGrip](https://github.com/Allas122/DataBase1/blob/main/Debug/DataGrip2.png)
