@@ -542,7 +542,7 @@ END;
 ```
 ![Скриншот при накатывании миграции](https://github.com/Allas122/DataBase1/blob/main/Debug/DataGrip2.PNG)
 
-Вывод в консоле при накатывании:
+Вывод в консоли при накатывании:
 ```ps
 [2025-11-26 18:38:10] Connected to Laba2
 [2025-11-26 18:38:10] completed in 55 ms
