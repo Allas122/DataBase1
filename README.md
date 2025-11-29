@@ -751,7 +751,7 @@ ORDER BY
     "Average Grade" DESC;
 ```
 ### Топ 3 студента по БД
-```
+```sql
 CREATE VIEW top_3_students_by_database_subject_rate_v AS
 SELECT
     s.student_id AS "Student Id",
