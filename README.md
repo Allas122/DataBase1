@@ -1007,6 +1007,29 @@ $$;
 ```
 ### Генерируем по 20000 записей в каждуютаблицу:
 ```sql
-
+CALL generate_students(20000);
+CALL generate_teachers(20000);
+CALL generate_grades(20000);
 ```
+
+## Запросы
+Ну, начнёс с запросов не по индексам. У нас есть следующий запрос:
+```sql
+EXPLAIN (analyse, buffers)
+SELECT * FROM students AS s WHERE s.full_name LIKE '% Иван %';
+```
+![explain before](https://github.com/Allas122/DataBase1/blob/main/Debug/Explain_before.png)
+Как мы видим, происходит SEQ SCAN, а это значит что мы буквально перебираем всю таблицу. Что это значит ? Правильно, O(N) от количества записей.
+
+Как его можно оптимизировать за счёт индексов ? Выражения типа LIKE могут быть оптимизированы засчёт GIN индексов(индексов полнотекстового поиска).
+Дополнительное расширение для работы с триграммами в GIN:
+```sql
+CREATE EXTENSION pg_trgm;
+```
+Создание индекса:
+```sql
+CREATE INDEX full_name_idx ON students USING GIN(full_name gin_trgm_ops);
+```
+Результат оптимизации:
+![explain after](https://github.com/Allas122/DataBase1/blob/main/Debug/DataGrip_Explain_after.png)
 
