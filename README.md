@@ -985,29 +985,8 @@ BEGIN
 END;
 $$;
 ```
-Генератор предметов:
-```sql
-create procedure generate_subjects(IN subject_count integer)
-    language plpgsql
-as
-$$
-DECLARE
-    subject_names TEXT[] := ARRAY['Databases','Mathematical Analysis','History','Programming',
-                                 'Operating Systems','Computer Networks','Software Engineering',
-                                 'Data Structures','Algorithms','Artificial Intelligence',
-                                 'Computer Architecture','Web Development','Mobile Development',
-                                 'Cyber Security','Data Science','Machine Learning',
-                                 'Database Management','System Administration','Network Security',
-                                 'Software Testing'];
-BEGIN
-    INSERT INTO Subjects (name, total_hours)
-    SELECT
-        subject_names[1 + (seq % array_length(subject_names, 1))] as name,
-        (60 + ((seq * 7) % 120)) as total_hours
-    FROM generate_series(1, subject_count) as seq;
-END;
-$$;
-```
+Предметов не может быть 20000, по этому япросто так иоставлю.
+
 Генератор выставленных оценок:
 ```sql
 create procedure generate_grades(IN grade_count integer)
@@ -1027,4 +1006,7 @@ END;
 $$;
 ```
 ### Генерируем по 20000 записей в каждуютаблицу:
+```sql
+
+```
 
