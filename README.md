@@ -798,3 +798,61 @@ LIMIT 3;
 ```
 ### Результат представлений
 ![views result](https://github.com/Allas122/DataBase1/blob/main/Debug/DataGrip_views_result.png)
+## Procedures
+Процедуры, в отличии от представлений, не обязатель представляют из себя синоним SELECT и не всегда представляет из себя отношения. Я просто напишу 4 маленьких процедурки.
+### Запрос
+```sql
+CREATE OR REPLACE PROCEDURE add_grade(
+    p_student_id INTEGER,
+    p_subject_id INTEGER,
+    p_teacher_id INTEGER,
+    p_exam_date DATE,
+    p_grade INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO Grades (student_id, subject_id, teacher_id, exam_date, grade)
+    VALUES (p_student_id, p_subject_id, p_teacher_id, p_exam_date, p_grade);
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE update_student_group(
+    p_student_id INTEGER,
+    p_new_group VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE Students SET group_name = p_new_group
+    WHERE student_id = p_student_id;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE delete_student_grades(
+    p_student_id INTEGER,
+    p_subject_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    DELETE FROM Grades
+    WHERE student_id = p_student_id AND subject_id = p_subject_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION get_avg_grade(p_student_id INTEGER)
+RETURNS NUMERIC
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_avg_grade NUMERIC;
+BEGIN
+    SELECT AVG(grade) INTO v_avg_grade
+    FROM Grades WHERE student_id = p_student_id;
+    RETURN COALESCE(v_avg_grade, 0);
+END;
+$$;
+```
+### Результат
+![procedures result](https://github.com/Allas122/DataBase1/blob/main/Debug/DataGrip_procedures_result.png)
