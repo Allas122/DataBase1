@@ -906,3 +906,110 @@ FROM (SELECT s.student_id,
 REFRESH MATERIALIZED VIEW average_grade_of_every_student_mv
 ```
 И не считать среднюю оценку для каждого студента каждый раз. Это сильно снизит нагрузку на CPU(не толькоиз за перепросчётов, но и из за отсутствия лишних агрегаций данных), создаётся меньше временных структур(экономия RAM),  что очень важно в реляционных базах данных из за тяжелого масштабирования.
+# Лабораторная работа 4
+## Цель
+Освоение методов анализа и оптимизации производительности БД.
+## Задачи
+1. Создание генератора данных (20 000 записей в каждой таблице)
+2. Анализ планов выполнения запросов (EXPLAIN ANALYZE)
+3. Оптимизация БД через индексы и настройки
+4. Сравнение производительности до/после оптимизации
+### Создание данных
+Генератор для студентов:
+```sql
+CREATE OR REPLACE PROCEDURE generate_students(student_count INTEGER)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    last_names TEXT[] := ARRAY['Иванов','Петров','Сидоров','Козлов','Смирнов','Михайлов','Новиков',
+                              'Кузнецов','Попов','Васильев','Фёдоров','Морозов','Волков','Зайцев',
+                              'Лебедев','Соколов','Орлов','Егоров','Никитин','Соловьёв'];
+    first_names TEXT[] := ARRAY['Иван','Алексей','Дмитрий','Сергей','Андрей','Николай','Павел',
+                               'Анна','Елена','Ольга','Мария','Наталья','Юлия','Екатерина',
+                               'Виктор','Максим','Артём','Владимир','Михаил','Георгий'];
+    middle_names TEXT[] := ARRAY['Иванович','Петрович','Сергеевич','Алексеевич','Дмитриевич','Андреевич',
+                                'Ивановна','Петровна','Сергеевна','Алексеевна','Дмитриевна','Викторович',
+                                'Михайлович','Владимирович','Олегович','Юрьевич','Геннадьевич'];
+BEGIN
+    INSERT INTO Students (full_name, record_book_number, birth_date, group_name)
+    SELECT
+        last_names[1 + (seq % array_length(last_names, 1))] || ' ' ||
+        first_names[1 + ((seq + 10) % array_length(first_names, 1))] || ' ' ||
+        middle_names[1 + ((seq + 20) % array_length(middle_names, 1))] as full_name,
+        'SN-' || (100000 + seq)::TEXT as record_book_number,
+        (DATE '2000-01-01' + (FLOOR(RANDOM() * 2000) || ' days')::INTERVAL)::DATE as birth_date,
+        CASE (seq % 3)
+            WHEN 0 THEN 'ИСТ-21' || (1 + (seq % 3))
+            WHEN 1 THEN 'ПРИ-21' || (1 + (seq % 3))
+            WHEN 2 THEN 'ИВТ-21' || (1 + (seq % 3))
+        END as group_name
+    FROM generate_series(1, student_count) as seq;
+END;
+$$;
+```
+Генератор для преподавателей:
+```sql
+CREATE OR REPLACE PROCEDURE generate_teachers(teacher_count INTEGER)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    last_names TEXT[] := ARRAY['Соколов','Кузнецов','Павлов','Орлов','Лебедев','Соловьёв',
+                              'Волков','Зайцев','Медведев','Никитин','Фёдоров','Морозов',
+                              'Громов','Белов','Комаров','Тихонов','Крылов','Щербаков',
+                              'Блинов','Карпов'];
+    first_names TEXT[] := ARRAY['Владимир','Александр','Михаил','Сергей','Дмитрий','Андрей',
+                               'Марина','Ольга','Екатерина','Наталья','Ирина','Татьяна',
+                               'Евгений','Анатолий','Виктор','Геннадий','Юрий','Станислав',
+                               'Лариса','Галина'];
+    middle_names TEXT[] := ARRAY['Ильич','Петрович','Сергеевич','Алексеевич','Дмитриевич','Викторович',
+                                'Борисовна','Анатольевна','Владимировна','Сергеевна','Юрьевна',
+                                'Михайлович','Геннадьевич','Олегович','Валентинович','Николаевич',
+                                'Вячеславович','Григорьевич'];
+    departments TEXT[] := ARRAY['Кафедра информационных систем','Кафедра высшей математики',
+                               'Кафедра гуманитарных наук','Кафедра программной инженерии',
+                               'Кафедра компьютерных наук','Кафедра искусственного интеллекта',
+                               'Кафедра системного анализа','Кафедра теоретической информатики'];
+BEGIN
+    INSERT INTO Teachers (full_name, department)
+    SELECT 
+        last_names[1 + (seq % array_length(last_names, 1))] || ' ' || 
+        first_names[1 + ((seq + 5) % array_length(first_names, 1))] || ' ' || 
+        middle_names[1 + ((seq + 10) % array_length(middle_names, 1))] as full_name,
+        departments[1 + (seq % array_length(departments, 1))] as department
+    FROM generate_series(1, teacher_count) as seq;
+END;
+$$;
+```
+Генератор выставленных оценок:
+```sql
+CREATE OR REPLACE PROCEDURE generate_grades(grade_count INTEGER)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    min_student_id INTEGER;
+    max_student_id INTEGER;
+    min_subject_id INTEGER;
+    max_subject_id INTEGER;
+    min_teacher_id INTEGER;
+    max_teacher_id INTEGER;
+BEGIN
+    SELECT MIN(student_id), MAX(student_id) INTO min_student_id, max_student_id FROM Students;
+    SELECT MIN(subject_id), MAX(subject_id) INTO min_subject_id, max_subject_id FROM Subjects;
+    SELECT MIN(teacher_id), MAX(teacher_id) INTO min_teacher_id, max_teacher_id FROM Teachers;
+    
+    IF min_student_id IS NULL OR min_subject_id IS NULL OR min_teacher_id IS NULL THEN
+        RAISE EXCEPTION 'Необходимо сначала сгенерировать студентов, предметы и преподавателей';
+    END IF;
+
+    INSERT INTO Grades (student_id, subject_id, teacher_id, exam_date, grade)
+    SELECT 
+        min_student_id + ((seq - 1) % (max_student_id - min_student_id + 1)) as student_id,
+        min_subject_id + ((seq * 3) % (max_subject_id - min_subject_id + 1)) as subject_id,
+        min_teacher_id + ((seq * 7) % (max_teacher_id - min_teacher_id + 1)) as teacher_id,
+        DATE '2024-01-01' + ((seq * 11) % 365) * INTERVAL '1 day' as exam_date,
+        2 + ((seq * 5) % 4) as grade
+    FROM generate_series(1, grade_count) as seq;
+END;
+$$;
+```
+Ну а предметов у нас не может быть 20000, к сожалению.
