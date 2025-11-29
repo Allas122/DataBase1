@@ -695,3 +695,106 @@ ORDER BY
 LIMIT 3;
 ```
 ![AverageGrade](https://github.com/Allas122/DataBase1/blob/main/Debug/DataGrip_Top3.png)
+
+# Лабораторная работа 3
+## Цель
+Освоение механизмов абстракции данных и программных модулей.
+## Задачи
+1. Создание представлений для выходных документов
+2. Разработка хранимых процедур с параметрами
+3. Оптимизация запросов через представления
+## Представления(Views)
+Есть 2 вида представлений: 
+Материализованные - Сохраняют результат выполнения запроса в отдельное отношение, что часто оптимизирует запрос.
+Не материализованные - Эквивалетны исполнению SELECT запроса.
+p.s - Я решил добавить к выходным документам ID, т.к дальше буду взаимодействовать с ними в запросах.
+### Средняя оценка каждого сдудента
+```sql
+CREATE VIEW average_grade_of_every_student_v AS
+SELECT
+    s.student_id AS "Student Id",
+    s.full_name AS "Student Name",
+    sub.name AS "Subject",
+    AVG(g.grade) AS "Average Grade"
+FROM
+    Grades AS g
+JOIN
+    Students AS s ON g.student_id = s.student_id
+JOIN
+    Subjects AS sub ON g.subject_id = sub.subject_id
+GROUP BY
+    s.student_id,
+    s.full_name,
+    sub.name
+ORDER BY
+    s.full_name,
+    "Average Grade" DESC;
+
+CREATE MATERIALIZED VIEW average_grade_of_every_student_mv AS
+SELECT
+    s.student_id AS "Student Id",
+    s.full_name AS "Student Name",
+    sub.name AS "Subject",
+    AVG(g.grade) AS "Average Grade"
+FROM
+    Grades AS g
+JOIN
+    Students AS s ON g.student_id = s.student_id
+JOIN
+    Subjects AS sub ON g.subject_id = sub.subject_id
+GROUP BY
+    s.student_id,
+    s.full_name,
+    sub.name
+ORDER BY
+    s.full_name,
+    "Average Grade" DESC;
+```
+### Топ 3 студента по БД
+```
+CREATE VIEW top_3_students_by_database_subject_rate_v AS
+SELECT
+    s.student_id AS "Student Id",
+    s.full_name AS "Student Name",
+    s.group_name,
+    AVG(g.grade) AS "Average Grade in Databases"
+FROM
+    Grades AS g
+JOIN
+    Students AS s ON g.student_id = s.student_id
+JOIN
+    Subjects AS sub ON g.subject_id = sub.subject_id
+WHERE
+    sub.name = 'Databases'
+GROUP BY
+    s.student_id,
+    s.full_name,
+    s.group_name
+ORDER BY
+    "Average Grade in Databases" DESC
+LIMIT 3;
+
+CREATE MATERIALIZED VIEW top_3_students_by_database_subject_rate_mv AS
+SELECT
+    s.student_id AS "Student Id",
+    s.full_name AS "Student Name",
+    s.group_name,
+    AVG(g.grade) AS "Average Grade in Databases"
+FROM
+    Grades AS g
+JOIN
+    Students AS s ON g.student_id = s.student_id
+JOIN
+    Subjects AS sub ON g.subject_id = sub.subject_id
+WHERE
+    sub.name = 'Databases'
+GROUP BY
+    s.student_id,
+    s.full_name,
+    s.group_name
+ORDER BY
+    "Average Grade in Databases" DESC
+LIMIT 3;
+```
+### Результат представлений
+![views result](https://github.com/Allas122/DataBase1/blob/main/Debug/DataGrip_views_result.png)
