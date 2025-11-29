@@ -856,3 +856,53 @@ $$;
 ```
 ### Результат
 ![procedures result](https://github.com/Allas122/DataBase1/blob/main/Debug/DataGrip_procedures_result.png)
+
+## Оптимзации запросов
+### Синтаксические
+С использованием views:
+```sql
+SELECT * FROM top_3_students_by_database_subject_rate_v AS ts
+LEFT JOIN average_grade_of_every_student_v AS s
+ON ts."Student Id" = s."Student Id"
+```
+Без использования:
+```sql
+SELECT *
+FROM (SELECT s.student_id,
+             s.full_name  AS "Student Name",
+             s.group_name,
+             AVG(g.grade) AS "Average Grade in Databases"
+      FROM Grades AS g
+               JOIN
+           Students AS s ON g.student_id = s.student_id
+               JOIN
+           Subjects AS sub ON g.subject_id = sub.subject_id
+      WHERE sub.name = 'Databases'
+      GROUP BY s.student_id,
+               s.full_name,
+               s.group_name
+      ORDER BY "Average Grade in Databases" DESC
+      LIMIT 3) AS ts
+         LEFT JOIN (SELECT s.student_id,
+                           s.full_name  AS "Student Name",
+                           sub.name     AS "Subject",
+                           AVG(g.grade) AS "Average Grade"
+                    FROM Grades AS g
+                             JOIN
+                         Students AS s ON g.student_id = s.student_id
+                             JOIN
+                         Subjects AS sub ON g.subject_id = sub.subject_id
+                    GROUP BY s.student_id,
+                             s.full_name,
+                             sub.name
+                    ORDER BY s.full_name,
+                             "Average Grade" DESC) AS s
+                   ON ts.student_id = s.student_id
+```
+Как мы видим, в разы короче.
+### Производительность 
+В плане производительности, можно представить себе ситуацию на материализованных представлениях. Представим я занёс в таблицу всех студентов и мне нужно для каждого из них посчитать среднюю оценку попредметам. Больше студентов у меня не будет, тогда я могу пересчитать материализованное представление один раз:
+```sql
+REFRESH MATERIALIZED VIEW average_grade_of_every_student_mv
+```
+И не считать среднюю оценку для каждого студента каждый раз. Это сильно снизит нагрузку на CPU(не толькоиз за перепросчётов, но и из за отсутствия лишних агрегаций данных), создаётся меньше временных структур(экономия RAM),  что очень важно в реляционных базах данных из за тяжелого масштабирования.
