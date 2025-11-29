@@ -930,13 +930,18 @@ DECLARE
     middle_names TEXT[] := ARRAY['Иванович','Петрович','Сергеевич','Алексеевич','Дмитриевич','Андреевич',
                                 'Ивановна','Петровна','Сергеевна','Алексеевна','Дмитриевна','Викторович',
                                 'Михайлович','Владимирович','Олегович','Юрьевич','Геннадьевич'];
+    max_book_number INTEGER;
 BEGIN
+    SELECT COALESCE(MAX(CAST(SUBSTRING(record_book_number FROM 4) AS INTEGER)), 100000)
+    INTO max_book_number
+    FROM Students;
+
     INSERT INTO Students (full_name, record_book_number, birth_date, group_name)
     SELECT
         last_names[1 + (seq % array_length(last_names, 1))] || ' ' ||
         first_names[1 + ((seq + 10) % array_length(first_names, 1))] || ' ' ||
         middle_names[1 + ((seq + 20) % array_length(middle_names, 1))] as full_name,
-        'SN-' || (100000 + seq)::TEXT as record_book_number,
+        'SN-' || (max_book_number + seq)::TEXT as record_book_number,
         (DATE '2000-01-01' + (FLOOR(RANDOM() * 2000) || ' days')::INTERVAL)::DATE as birth_date,
         CASE (seq % 3)
             WHEN 0 THEN 'ИСТ-21' || (1 + (seq % 3))
@@ -980,36 +985,46 @@ BEGIN
 END;
 $$;
 ```
-Генератор выставленных оценок:
+Генератор предметов:
 ```sql
-CREATE OR REPLACE PROCEDURE generate_grades(grade_count INTEGER)
-LANGUAGE plpgsql
-AS $$
+create procedure generate_subjects(IN subject_count integer)
+    language plpgsql
+as
+$$
 DECLARE
-    min_student_id INTEGER;
-    max_student_id INTEGER;
-    min_subject_id INTEGER;
-    max_subject_id INTEGER;
-    min_teacher_id INTEGER;
-    max_teacher_id INTEGER;
+    subject_names TEXT[] := ARRAY['Databases','Mathematical Analysis','History','Programming',
+                                 'Operating Systems','Computer Networks','Software Engineering',
+                                 'Data Structures','Algorithms','Artificial Intelligence',
+                                 'Computer Architecture','Web Development','Mobile Development',
+                                 'Cyber Security','Data Science','Machine Learning',
+                                 'Database Management','System Administration','Network Security',
+                                 'Software Testing'];
 BEGIN
-    SELECT MIN(student_id), MAX(student_id) INTO min_student_id, max_student_id FROM Students;
-    SELECT MIN(subject_id), MAX(subject_id) INTO min_subject_id, max_subject_id FROM Subjects;
-    SELECT MIN(teacher_id), MAX(teacher_id) INTO min_teacher_id, max_teacher_id FROM Teachers;
-    
-    IF min_student_id IS NULL OR min_subject_id IS NULL OR min_teacher_id IS NULL THEN
-        RAISE EXCEPTION 'Необходимо сначала сгенерировать студентов, предметы и преподавателей';
-    END IF;
-
-    INSERT INTO Grades (student_id, subject_id, teacher_id, exam_date, grade)
-    SELECT 
-        min_student_id + ((seq - 1) % (max_student_id - min_student_id + 1)) as student_id,
-        min_subject_id + ((seq * 3) % (max_subject_id - min_subject_id + 1)) as subject_id,
-        min_teacher_id + ((seq * 7) % (max_teacher_id - min_teacher_id + 1)) as teacher_id,
-        DATE '2024-01-01' + ((seq * 11) % 365) * INTERVAL '1 day' as exam_date,
-        2 + ((seq * 5) % 4) as grade
-    FROM generate_series(1, grade_count) as seq;
+    INSERT INTO Subjects (name, total_hours)
+    SELECT
+        subject_names[1 + (seq % array_length(subject_names, 1))] as name,
+        (60 + ((seq * 7) % 120)) as total_hours
+    FROM generate_series(1, subject_count) as seq;
 END;
 $$;
 ```
-Ну а предметов у нас не может быть 20000, к сожалению.
+Генератор выставленных оценок:
+```sql
+create procedure generate_grades(IN grade_count integer)
+    language plpgsql
+as
+$$
+BEGIN
+    INSERT INTO Grades (student_id, subject_id, teacher_id, exam_date, grade)
+    SELECT
+        (SELECT student_id FROM Students ORDER BY RANDOM() LIMIT 1),
+        (SELECT subject_id FROM Subjects ORDER BY RANDOM() LIMIT 1),
+        (SELECT teacher_id FROM Teachers ORDER BY RANDOM() LIMIT 1),
+        DATE '2024-01-01' + (FLOOR(RANDOM() * 365) || ' days')::INTERVAL,
+        2 + (RANDOM() * 3)::INTEGER
+    FROM generate_series(1, grade_count);
+END;
+$$;
+```
+### Генерируем по 20000 записей в каждуютаблицу:
+
