@@ -1013,7 +1013,7 @@ CALL generate_grades(20000);
 ```
 
 ## Запросы
-Ну, начнёс с запросов не по индексам. У нас есть следующий запрос:
+Ну, начнём с с запросов не по индексам. У нас есть следующий запрос:
 ```sql
 EXPLAIN (analyse, buffers)
 SELECT * FROM students AS s WHERE s.full_name LIKE '% Иван %';
@@ -1033,4 +1033,4 @@ CREATE INDEX full_name_idx ON students USING GIN(full_name gin_trgm_ops);
 ![explain after](https://github.com/Allas122/DataBase1/blob/main/Debug/DataGrip_Explain_after.png)
 Как мы видим, общее время выполнения упало аж в 12 раз, и вместо seq scan мы получили bitmap index scan, а значит что:
 1. Мы попали в индекс, а значит ускорили SELECT с O(N) до O(log N).
-2. Мы на этапе поиска даже не зашли в данные таблицы, мыпросканировалитолькоиндекс и из него уже дальше поняли что доставать из таблицы.
+2. Мы на этапе поиска даже не зашли в данные таблицы, мыпросканировали только индекс и из него уже дальше поняли что доставать из таблицы.
